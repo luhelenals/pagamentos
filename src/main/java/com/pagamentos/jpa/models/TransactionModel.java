@@ -35,6 +35,10 @@ public class TransactionModel implements Serializable {
     @JoinColumn(name = "cartao_id")
     private CardModel cartao;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private UserModel user;
+
     @OneToOne
     @JoinColumn(name = "cobranca_id", referencedColumnName = "id", nullable = false)
     private CobrancaModel cobranca;
@@ -102,5 +106,13 @@ public class TransactionModel implements Serializable {
 
     public void setCobranca(CobrancaModel cobranca) {
         this.cobranca = cobranca;
+    }
+
+    public void setUser(UserModel user) {
+        this.user = user;
+    }
+
+    public UserModel getUser() {
+        return user;
     }
 }

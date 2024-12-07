@@ -38,6 +38,10 @@ public class UserModel implements Serializable {
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<TransactionModel> transacoes = new HashSet<>();
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<CardModel> cartoes = new HashSet<>();
 
     // Getters e Setters
@@ -93,6 +97,14 @@ public class UserModel implements Serializable {
         this.cartoes = cartoes;
     }
 
+    public void addCartao(CardModel cartao) {
+        if (this.cartoes == null) {
+            this.cartoes = new HashSet<>();
+        }
+        this.cartoes.add(cartao);
+        cartao.setUser(this);
+    }
+
     public Set<CardModel> getCartoes() {
         return cartoes;
     }
@@ -103,5 +115,13 @@ public class UserModel implements Serializable {
 
     public BigDecimal getSaldo() {
         return saldo;
+    }
+
+    public void setTransacoes(Set<TransactionModel> transacoes) {
+        this.transacoes = transacoes;
+    }
+
+    public Set<TransactionModel> getTransacoes() {
+        return transacoes;
     }
 }
