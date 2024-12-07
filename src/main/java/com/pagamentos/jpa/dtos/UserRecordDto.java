@@ -10,8 +10,5 @@ public record UserRecordDto(String nome,
                             String senha,
                             BigDecimal saldo,
                             Set<UUID> cobrancas_ids,
-                            Set<UUID> transacoes_ids,
-                            String cartao_num,
-                            String cartao_validade,
-                            String cvv) {
+                            Set<UUID> transacoes_ids) {
 }

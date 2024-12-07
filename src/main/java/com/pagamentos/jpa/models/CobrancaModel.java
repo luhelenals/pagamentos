@@ -31,8 +31,12 @@ public class CobrancaModel  implements Serializable {
     private StatusCobranca status;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    private UserModel user;
+    @JoinColumn(name = "user_origem_id")
+    private UserModel userOrigem;
+
+    @ManyToOne
+    @JoinColumn(name = "user_destino_id")
+    private UserModel userDestino;
 
     @OneToOne(mappedBy = "cobranca", cascade = CascadeType.ALL, orphanRemoval = true)
     private TransactionModel transacao;
@@ -85,12 +89,12 @@ public class CobrancaModel  implements Serializable {
         this.status = status;
     }
 
-    public void setUser(UserModel user) {
-        this.user = user;
+    public void setUserOrigem(UserModel user) {
+        this.userOrigem = user;
     }
 
-    public UserModel getUser() {
-        return user;
+    public UserModel getUserOrigem() {
+        return userOrigem;
     }
 
     public void setTransacao(TransactionModel transacao) {
@@ -99,5 +103,13 @@ public class CobrancaModel  implements Serializable {
 
     public TransactionModel getTransacao() {
         return transacao;
+    }
+
+    public void setUserDestino(UserModel userDestino) {
+        this.userDestino = userDestino;
+    }
+
+    public UserModel getUserDestino() {
+        return userDestino;
     }
 }

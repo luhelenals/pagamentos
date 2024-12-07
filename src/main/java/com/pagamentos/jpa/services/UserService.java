@@ -39,15 +39,7 @@ public class UserService {
         user.setSenha(userRecordDto.senha());
         user.setSaldo(userRecordDto.saldo());
         user.setTransacoes(transactionRepository.findAllById(userRecordDto.transacoes_ids()).stream().collect(Collectors.toSet()));
-        user.setCobrancas(cobrancaRepository.findAllById(userRecordDto.cobrancas_ids()).stream().collect(Collectors.toSet()));
-
-        CardModel cartao = new CardModel();
-        cartao.setCvv(userRecordDto.cvv());
-        cartao.setUser(user);
-        cartao.setNumero(userRecordDto.cartao_num());
-        cartao.setValidade(userRecordDto.cartao_validade());
-
-        user.addCartao(cartao);
+        user.setCobrancasFeitas(cobrancaRepository.findAllById(userRecordDto.cobrancas_ids()).stream().collect(Collectors.toSet()));
 
         return userRepository.save(user);
     }

@@ -33,8 +33,12 @@ public class UserModel implements Serializable {
     private BigDecimal saldo;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<CobrancaModel> cobrancas = new HashSet<>();
+    @OneToMany(mappedBy = "userOrigem", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<CobrancaModel> cobrancasFeitas = new HashSet<>();
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @OneToMany(mappedBy = "userDestino", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<CobrancaModel> cobrancasRecebidas = new HashSet<>();
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
@@ -85,12 +89,12 @@ public class UserModel implements Serializable {
         this.cpf = cpf;
     }
 
-    public void setCobrancas(Set<CobrancaModel> cobrancas) {
-        this.cobrancas = cobrancas;
+    public void setCobrancasFeitas(Set<CobrancaModel> cobrancas) {
+        this.cobrancasFeitas = cobrancas;
     }
 
-    public Set<CobrancaModel> getCobrancas() {
-        return cobrancas;
+    public Set<CobrancaModel> getCobrancasFeitas() {
+        return cobrancasFeitas;
     }
 
     public void setCartoes(Set<CardModel> cartoes) {
@@ -123,5 +127,29 @@ public class UserModel implements Serializable {
 
     public Set<TransactionModel> getTransacoes() {
         return transacoes;
+    }
+
+    public void setCobrancasRecebidas(Set<CobrancaModel> cobrancas) {
+        this.cobrancasRecebidas = cobrancas;
+    }
+
+    public Set<CobrancaModel> getCobrancasRecebidas() {
+        return cobrancasRecebidas;
+    }
+
+    public void addCobrancaRecebida(CobrancaModel cobranca) {
+        if (this.cobrancasRecebidas == null) {
+            this.cobrancasRecebidas = new HashSet<>();
+        }
+        this.cobrancasRecebidas.add(cobranca);
+        cobranca.setUserDestino(this);
+    }
+
+    public void addCobrancaFeita(CobrancaModel cobranca) {
+        if (this.cobrancasFeitas == null) {
+            this.cobrancasFeitas = new HashSet<>();
+        }
+        this.cobrancasFeitas.add(cobranca);
+        cobranca.setUserOrigem(this);
     }
 }
