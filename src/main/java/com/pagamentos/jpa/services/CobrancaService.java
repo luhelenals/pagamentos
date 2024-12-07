@@ -14,14 +14,12 @@ import org.springframework.stereotype.Service;
 public class CobrancaService {
     private final UserRepository userRepository;
     private final CobrancaRepository cobrancaRepository;
-    private final TransactionRepository transactionRepository;
 
     public CobrancaService(UserRepository userRepository,
                            CobrancaRepository cobrancaRepository,
                            TransactionRepository transactionRepository) {
         this.userRepository = userRepository;
         this.cobrancaRepository = cobrancaRepository;
-        this.transactionRepository = transactionRepository;
     }
 
     @Transactional
