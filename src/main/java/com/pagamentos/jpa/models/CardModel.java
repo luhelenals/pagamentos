@@ -26,7 +26,7 @@ public class CardModel implements Serializable {
     private String cvv;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_origem_id")
     private UserModel user;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)

@@ -18,12 +18,6 @@ public class TransactionModel implements Serializable {
     @Column(nullable = false)
     private BigDecimal valor;
 
-    @Column(nullable = false, length = 11)
-    private String cpfOrigem;
-
-    @Column(nullable = false, length = 11)
-    private String cpfDestino;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private TransactionType tipo;
@@ -32,15 +26,15 @@ public class TransactionModel implements Serializable {
     private LocalDateTime createdAt;
 
     @ManyToOne
-    @JoinColumn(name = "cartao_id")
+    @JoinColumn(name = "cartao_id", nullable = true)
     private CardModel cartao;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_origem_id", nullable = false)
     private UserModel user;
 
     @OneToOne
-    @JoinColumn(name = "cobranca_id", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "cobranca_id", referencedColumnName = "id", nullable = true)
     private CobrancaModel cobranca;
 
     // Getters e Setters
@@ -58,22 +52,6 @@ public class TransactionModel implements Serializable {
 
     public void setValor(BigDecimal valor) {
         this.valor = valor;
-    }
-
-    public String getCpfOrigem() {
-        return cpfOrigem;
-    }
-
-    public void setCpfOrigem(String cpfOrigem) {
-        this.cpfOrigem = cpfOrigem;
-    }
-
-    public String getCpfDestino() {
-        return cpfDestino;
-    }
-
-    public void setCpfDestino(String cpfDestino) {
-        this.cpfDestino = cpfDestino;
     }
 
     public TransactionType getTipo() {
