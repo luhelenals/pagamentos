@@ -1,6 +1,5 @@
 package com.pagamentos.jpa.controllers;
 
-import com.pagamentos.jpa.models.TransactionModel;
 import com.pagamentos.jpa.models.UserModel;
 import com.pagamentos.jpa.repositories.UserRepository;
 import com.pagamentos.jpa.services.UserService;

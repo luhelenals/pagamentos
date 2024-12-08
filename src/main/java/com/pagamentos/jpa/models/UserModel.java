@@ -3,14 +3,20 @@ package com.pagamentos.jpa.models;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.HashSet;
+import java.util.*;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Set;
-import java.util.UUID;
+import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @Entity
 @Table(name = "TB_USER")
-public class UserModel implements Serializable {
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode
+public class UserModel implements Serializable, UserDetails {
     private static final long serialVersionUID = 1L;
 
     @Id
@@ -163,5 +169,35 @@ public class UserModel implements Serializable {
         }
         this.cobrancasFeitas.add(cobranca);
         cobranca.setUserOrigem(this);
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of();
+    }
+
+    @Override
+    public String getPassword() {
+        return "";
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
     }
 }
