@@ -38,8 +38,6 @@ public class UserService {
         user.setEmail(userRecordDto.email());
         user.setSenha(userRecordDto.senha());
         user.setSaldo(userRecordDto.saldo());
-        user.setTransacoes(transactionRepository.findAllById(userRecordDto.transacoes_ids()).stream().collect(Collectors.toSet()));
-        user.setCobrancasFeitas(cobrancaRepository.findAllById(userRecordDto.cobrancas_ids()).stream().collect(Collectors.toSet()));
 
         return userRepository.save(user);
     }

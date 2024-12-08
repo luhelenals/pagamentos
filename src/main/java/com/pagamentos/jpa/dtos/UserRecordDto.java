@@ -8,7 +8,5 @@ public record UserRecordDto(String nome,
                             String cpf,
                             String email,
                             String senha,
-                            BigDecimal saldo,
-                            Set<UUID> cobrancas_ids,
-                            Set<UUID> transacoes_ids) {
+                            BigDecimal saldo) {
 }

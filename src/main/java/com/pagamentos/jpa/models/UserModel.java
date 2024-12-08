@@ -41,8 +41,12 @@ public class UserModel implements Serializable {
     private Set<CobrancaModel> cobrancasRecebidas = new HashSet<>();
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<TransactionModel> transacoes = new HashSet<>();
+    @OneToMany(mappedBy = "userDestino", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<TransactionModel> transacoesRecebidas = new HashSet<>();
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @OneToMany(mappedBy = "userOrigem", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<TransactionModel> transacoesFeitas = new HashSet<>();
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
@@ -121,12 +125,20 @@ public class UserModel implements Serializable {
         return saldo;
     }
 
-    public void setTransacoes(Set<TransactionModel> transacoes) {
-        this.transacoes = transacoes;
+    public void setTransacoesRecebidas(Set<TransactionModel> transacoes) {
+        this.transacoesRecebidas = transacoes;
     }
 
-    public Set<TransactionModel> getTransacoes() {
-        return transacoes;
+    public Set<TransactionModel> getTransacoesRecebidas() {
+        return transacoesRecebidas;
+    }
+
+    public void setTransacoesFeitas(Set<TransactionModel> transacoes) {
+        this.transacoesFeitas = transacoes;
+    }
+
+    public Set<TransactionModel> getTransacoesFeitas() {
+        return transacoesFeitas;
     }
 
     public void setCobrancasRecebidas(Set<CobrancaModel> cobrancas) {

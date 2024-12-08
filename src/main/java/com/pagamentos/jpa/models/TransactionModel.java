@@ -31,7 +31,11 @@ public class TransactionModel implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "user_origem_id", nullable = false)
-    private UserModel user;
+    private UserModel userOrigem;
+
+    @ManyToOne
+    @JoinColumn(name = "user_destino_id", nullable = true)
+    private UserModel userDestino;
 
     @OneToOne
     @JoinColumn(name = "cobranca_id", referencedColumnName = "id", nullable = true)
@@ -86,11 +90,19 @@ public class TransactionModel implements Serializable {
         this.cobranca = cobranca;
     }
 
-    public void setUser(UserModel user) {
-        this.user = user;
+    public void setUserOrigem(UserModel user) {
+        this.userOrigem = user;
     }
 
-    public UserModel getUser() {
-        return user;
+    public UserModel getUserOrigem() {
+        return userOrigem;
+    }
+
+    public UserModel getUserDestino() {
+        return userDestino;
+    }
+
+    public void setUserDestino(UserModel userDestino) {
+        this.userDestino = userDestino;
     }
 }
