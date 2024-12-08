@@ -46,28 +46,43 @@ public class TransactionService {
                 return transactionRepository.save(transaction);
             }
             case PAGAMENTO_CARTAO -> {
-                // implementar autorização externa
-                CardModel card = cardRepository.findById(transactionRecordDto.card_id()).get();
-                // https://zsy6tx7aql.execute-api.sa-east-1.amazonaws.com/authorizer
-                if(true) {
-                    CobrancaModel cobranca = cobrancaRepository.findById(transactionRecordDto.cobranca_id()).get();
+                // Simular autorização externa (implementação futura)
+                CardModel card = cardRepository.findById(transactionRecordDto.card_id())
+                        .orElseThrow(() -> new RuntimeException("Cartão não encontrado"));
 
-                    UserModel userDestino = userRepository.findById(cobranca.getUserDestino().getId()).get();
-                    UserModel userOrigem = userRepository.findById(cobranca.getUserOrigem().getId()).get();
-                    userDestino.setSaldo(userDestino.getSaldo().subtract(cobranca.getValor()));
+                // Aqui a autorização será implementada futuramente; por enquanto, sempre será permitida
+                boolean autorizacao = true;
 
+                if (autorizacao) {
+                    // Busca a cobrança associada
+                    CobrancaModel cobranca = cobrancaRepository.findById(transactionRecordDto.cobranca_id())
+                            .orElseThrow(() -> new RuntimeException("Cobrança não encontrada"));
+
+                    // Busca o usuário de destino
+                    UserModel userDestino = userRepository.findById(cobranca.getUserOrigem().getId())
+                            .orElseThrow(() -> new RuntimeException("Usuário de destino não encontrado"));
+
+                    // Atualiza o saldo do usuário de destino (adiciona o valor da cobrança)
+                    userDestino.setSaldo(userDestino.getSaldo().add(cobranca.getValor()));
+
+                    // Atualiza o status da cobrança
                     cobranca.setStatus(StatusCobranca.REALIZADO);
-                    transaction.setCreatedAt(LocalDateTime.now());
 
+                    // Configura os detalhes da transação
+                    transaction.setValor(cobranca.getValor());
+                    transaction.setCreatedAt(LocalDateTime.now());
                     transaction.setUserDestino(userDestino);
+
+                    // O usuário de origem é apenas referenciado pela cobrança, mas não afeta o saldo
+                    UserModel userOrigem = userRepository.findById(cobranca.getUserOrigem().getId())
+                            .orElseThrow(() -> new RuntimeException("Usuário de origem não encontrado"));
                     transaction.setUserOrigem(userOrigem);
 
-                    transaction.setValor(cobranca.getValor());
-
+                    // Salva a transação no repositório
                     return transactionRepository.save(transaction);
-                }
-                else {
+                } else {
                     System.out.println("Transação negada.");
+                    throw new RuntimeException("Transação negada pela autorização externa.");
                 }
             }
             case PAGAMENTO_SALDO -> {
