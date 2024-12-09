@@ -4,6 +4,7 @@ import com.pagamentos.jpa.dtos.AuthenticationRecordDto;
 import com.pagamentos.jpa.dtos.RegistrationRecordDto;
 import com.pagamentos.jpa.models.UserModel;
 import com.pagamentos.jpa.repositories.UserRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,18 +28,23 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity login(@RequestBody @Valid AuthenticationRecordDto data){
-        var usernamePassword = new UsernamePasswordAuthenticationToken(data.email(), data.password());
-        var auth = this.authenticationManager.authenticate(usernamePassword);
-
-        return ResponseEntity.ok().build();
+    public ResponseEntity login(@RequestBody @Valid AuthenticationRecordDto data) {
+        try {
+            var usernamePassword = new UsernamePasswordAuthenticationToken(data.email(), data.senha());
+            var auth = this.authenticationManager.authenticate(usernamePassword);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
     }
+
 
     @PostMapping("/register")
     public ResponseEntity register(@RequestBody @Valid RegistrationRecordDto data){
         if(this.userRepository.findUserByEmail(data.email()) != null) return ResponseEntity.badRequest().build();
 
         String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());
+        System.out.println(encryptedPassword);
         UserModel newUser = new UserModel(data.nome(), data.email(), encryptedPassword, data.cpf());
 
         this.userRepository.save(newUser);
