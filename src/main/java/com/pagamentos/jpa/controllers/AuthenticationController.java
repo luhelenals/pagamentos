@@ -1,7 +1,9 @@
 package com.pagamentos.jpa.controllers;
 
 import com.pagamentos.jpa.dtos.AuthenticationRecordDto;
+import com.pagamentos.jpa.dtos.LoginResponseDto;
 import com.pagamentos.jpa.dtos.RegistrationRecordDto;
+import com.pagamentos.jpa.infra.TokenService;
 import com.pagamentos.jpa.models.UserModel;
 import com.pagamentos.jpa.repositories.UserRepository;
 import org.springframework.http.HttpStatus;
@@ -21,10 +23,12 @@ public class AuthenticationController {
 
     private AuthenticationManager authenticationManager;
     private UserRepository userRepository;
+    private TokenService tokenService;
 
-    public AuthenticationController(AuthenticationManager authenticationManager, UserRepository userRepository) {
+    public AuthenticationController(AuthenticationManager authenticationManager, UserRepository userRepository, TokenService tokenService) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
+        this.tokenService = tokenService;
     }
 
     @PostMapping("/login")
@@ -32,12 +36,14 @@ public class AuthenticationController {
         try {
             var usernamePassword = new UsernamePasswordAuthenticationToken(data.email(), data.senha());
             var auth = this.authenticationManager.authenticate(usernamePassword);
-            return ResponseEntity.ok().build();
+
+            var token = tokenService.generateToken((UserModel) auth.getPrincipal());
+
+            return ResponseEntity.ok(new LoginResponseDto(token));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
-
 
     @PostMapping("/register")
     public ResponseEntity register(@RequestBody @Valid RegistrationRecordDto data){
