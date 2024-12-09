@@ -58,6 +58,20 @@ public class UserModel implements Serializable, UserDetails {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<CardModel> cartoes = new HashSet<>();
 
+    public UserModel (String nome, String email, String senha, String cpf) {
+        this.nome = nome;
+        this.email = email;
+        this.senha = senha;
+        this.cpf = cpf;
+
+        // Valores default iniciais
+        this.saldo = BigDecimal.ZERO;
+        this.cobrancasFeitas = new HashSet<>();
+        this.cobrancasRecebidas = new HashSet<>();
+        this.transacoesRecebidas = new HashSet<>();
+        this.transacoesFeitas = new HashSet<>();
+        this.cartoes = new HashSet<>();
+    }
     // Getters e Setters
     public UUID getId() {
         return id;
