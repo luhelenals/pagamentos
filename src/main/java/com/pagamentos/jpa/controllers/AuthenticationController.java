@@ -47,7 +47,11 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     public ResponseEntity register(@RequestBody @Valid RegistrationRecordDto data){
-        if(this.userRepository.findUserByEmail(data.email()) != null) return ResponseEntity.badRequest().build();
+        // Verificações de preenchimento de campos, validação de CPF e existência do cadastro
+        if((data.password() == null || data.email() == null || data.nome() == null || data.cpf() == null)
+                || (this.userRepository.findUserByEmail(data.email()) != null || this.userRepository.findUserByCPF(data.cpf()) != null)
+                || !UserModel.isCPF(data.cpf()))
+            return ResponseEntity.badRequest().build();
 
         String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());
         System.out.println(encryptedPassword);
