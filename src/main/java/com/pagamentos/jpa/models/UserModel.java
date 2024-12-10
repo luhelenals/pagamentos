@@ -19,53 +19,54 @@ import org.springframework.security.core.userdetails.UserDetails;
 public class UserModel implements Serializable, UserDetails {
     private static final long serialVersionUID = 1L;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID id;
+    @Id  // Define o identificador da entidade
+    @GeneratedValue(strategy = GenerationType.AUTO)  // Gera o valor automaticamente
+    private UUID id;  // ID do usuário, do tipo UUID
 
-    @Column(nullable = false)
-    private String nome;
+    @Column(nullable = false)  // Coluna obrigatória no banco
+    private String nome;  // Nome do usuário
 
-    @Column(nullable = false, unique = true)
-    private String email;
+    @Column(nullable = false, unique = true)  // Coluna obrigatória e única
+    private String email;  // Email do usuário
 
-    @Column(nullable = false)
-    private String senha;
+    @Column(nullable = false)  // Coluna obrigatória
+    private String senha;  // Senha do usuário
 
-    @Column(nullable = false, unique = true, length = 11)
-    private String cpf;
+    @Column(nullable = false, unique = true, length = 11)  // Coluna obrigatória, única e com tamanho fixo
+    private String cpf;  // CPF do usuário
 
-    @Column(nullable = false)
-    private BigDecimal saldo;
+    @Column(nullable = false)  // Coluna obrigatória
+    private BigDecimal saldo;  // Saldo do usuário
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @OneToMany(mappedBy = "userOrigem", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<CobrancaModel> cobrancasFeitas = new HashSet<>();
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)  // Não serializa esta propriedade para leitura
+    @OneToMany(mappedBy = "userOrigem", fetch = FetchType.LAZY, cascade = CascadeType.ALL)  // Relacionamento com CobrancaModel
+    private Set<CobrancaModel> cobrancasFeitas = new HashSet<>();  // Conjunto de cobranças feitas pelo usuário
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @OneToMany(mappedBy = "userDestino", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<CobrancaModel> cobrancasRecebidas = new HashSet<>();
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)  // Não serializa esta propriedade para leitura
+    @OneToMany(mappedBy = "userDestino", fetch = FetchType.LAZY, cascade = CascadeType.ALL)  // Relacionamento com CobrancaModel
+    private Set<CobrancaModel> cobrancasRecebidas = new HashSet<>();  // Conjunto de cobranças recebidas pelo usuário
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @OneToMany(mappedBy = "userDestino", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<TransactionModel> transacoesRecebidas = new HashSet<>();
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)  // Não serializa esta propriedade para leitura
+    @OneToMany(mappedBy = "userDestino", fetch = FetchType.LAZY, cascade = CascadeType.ALL)  // Relacionamento com TransactionModel
+    private Set<TransactionModel> transacoesRecebidas = new HashSet<>();  // Conjunto de transações recebidas
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @OneToMany(mappedBy = "userOrigem", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<TransactionModel> transacoesFeitas = new HashSet<>();
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)  // Não serializa esta propriedade para leitura
+    @OneToMany(mappedBy = "userOrigem", fetch = FetchType.LAZY, cascade = CascadeType.ALL)  // Relacionamento com TransactionModel
+    private Set<TransactionModel> transacoesFeitas = new HashSet<>();  // Conjunto de transações feitas
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<CardModel> cartoes = new HashSet<>();
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)  // Não serializa esta propriedade para leitura
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)  // Relacionamento com CardModel
+    private Set<CardModel> cartoes = new HashSet<>();  // Conjunto de cartões do usuário
 
+    // Construtor personalizado para inicialização
     public UserModel (String nome, String email, String senha, String cpf) {
         this.nome = nome;
         this.email = email;
         this.senha = senha;
         this.cpf = cpf;
 
-        // Valores default iniciais
-        this.saldo = BigDecimal.ZERO;
+        // Inicializa valores padrão
+        this.saldo = BigDecimal.ZERO;  // Saldo inicial
         this.cobrancasFeitas = new HashSet<>();
         this.cobrancasRecebidas = new HashSet<>();
         this.transacoesRecebidas = new HashSet<>();
@@ -73,24 +74,21 @@ public class UserModel implements Serializable, UserDetails {
         this.cartoes = new HashSet<>();
     }
 
+    // Método estático para validação de CPF
     public static boolean isCPF(String CPF) {
-        // considera-se erro CPF"s formados por uma sequencia de numeros iguais
         List<String> CPFsInvalidos = Arrays.asList( "00000000000", "11111111111", "22222222222", "33333333333", "44444444444", "55555555555", "66666666666", "77777777777", "88888888888", "99999999999");
-        if(CPFsInvalidos.contains(CPF)) return(false);
+        if(CPFsInvalidos.contains(CPF)) return(false);  // CPF inválido se for uma sequência repetida
 
         char dig10, dig11;
         int sm, i, r, num, peso;
 
-        // "try" - protege o codigo para eventuais erros de conversao de tipo (int)
+        // Bloco "try" para capturar exceções
         try {
-            // Calculo do 1o. Digito Verificador
+            // Cálculo do 1º dígito verificador do CPF
             sm = 0;
             peso = 10;
             for (i=0; i<9; i++) {
-                // converte o i-esimo caractere do CPF em um numero:
-                // por exemplo, transforma o caractere "0" no inteiro 0
-                // (48 eh a posicao de "0" na tabela ASCII)
-                num = (int)(CPF.charAt(i) - 48);
+                num = (int)(CPF.charAt(i) - 48);  // Converte caractere para número
                 sm = sm + (num * peso);
                 peso = peso - 1;
             }
@@ -98,9 +96,9 @@ public class UserModel implements Serializable, UserDetails {
             r = 11 - (sm % 11);
             if ((r == 10) || (r == 11))
                 dig10 = '0';
-            else dig10 = (char)(r + 48); // converte no respectivo caractere numerico
+            else dig10 = (char)(r + 48);  // Converte para o caractere
 
-            // Calculo do 2o. Digito Verificador
+            // Cálculo do 2º dígito verificador do CPF
             sm = 0;
             peso = 11;
             for(i=0; i<10; i++) {
@@ -114,16 +112,16 @@ public class UserModel implements Serializable, UserDetails {
                 dig11 = '0';
             else dig11 = (char)(r + 48);
 
-            // Verifica se os digitos calculados conferem com os digitos informados.
+            // Verifica se os dígitos calculados são iguais aos informados
             if ((dig10 == CPF.charAt(9)) && (dig11 == CPF.charAt(10)))
-                return(true);
-            else return(false);
+                return(true);  // CPF válido
+            else return(false);  // CPF inválido
         } catch (InputMismatchException erro) {
-            return(false);
+            return(false);  // Exceção em caso de erro de conversão
         }
     }
 
-    // Getters e Setters
+    // Métodos getters e setters
     public UUID getId() {
         return id;
     }
@@ -236,33 +234,34 @@ public class UserModel implements Serializable, UserDetails {
         cobranca.setUserOrigem(this);
     }
 
+    // Implementação dos métodos de UserDetails do Spring Security
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        return List.of();  // Não define autoridades específicas para este usuário
     }
 
     @Override
     public String getPassword() {
-        return senha;
+        return senha;  // Retorna a senha do usuário
     }
 
     @Override
     public String getUsername() {
-        return email;
+        return email;  // Retorna o email como o nome de usuário
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return true;
+        return true;  // A conta não expira
     }
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return true;  // A conta está habilitada
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return true;  // A conta não está bloqueada
     }
 }

@@ -20,6 +20,7 @@ public class TransactionService {
     private final CardRepository cardRepository;
     private final CardValidationService cardValidationService;
 
+    // Construtor para injeção de dependências
     public TransactionService(UserRepository userRepository,
                               CobrancaRepository cobrancaRepository,
                               TransactionRepository transactionRepository,
@@ -32,39 +33,41 @@ public class TransactionService {
         this.cardValidationService = cardValidationService;
     }
 
-    @Transactional
+    @Transactional // Garante que as operações realizadas dentro do método sejam tratadas como uma transação
     public TransactionModel saveTransaction(TransactionRecordDto transactionRecordDto) {
+        // Valida os dados da transação
         if (transactionRecordDto.valor() == null
-            || transactionRecordDto.tipo() == null
-            || (transactionRecordDto.cobranca_id() == null
+                || transactionRecordDto.tipo() == null
+                || (transactionRecordDto.cobranca_id() == null
                 && (transactionRecordDto.tipo() == TransactionType.PAGAMENTO_CARTAO
                 || transactionRecordDto.tipo() == TransactionType.PAGAMENTO_SALDO))
-            || ((transactionRecordDto.cvv_cartao() == null || transactionRecordDto.numero_cartao() == null || transactionRecordDto.validade_cartao() == null)
+                || ((transactionRecordDto.cvv_cartao() == null || transactionRecordDto.numero_cartao() == null || transactionRecordDto.validade_cartao() == null)
                 && transactionRecordDto.tipo() == TransactionType.DEPOSITO || transactionRecordDto.tipo() == TransactionType.PAGAMENTO_CARTAO))
-            return null;
+            return null; // Retorna null caso a transação não seja válida
 
-        TransactionModel transaction = new TransactionModel();
+        TransactionModel transaction = new TransactionModel(); // Cria uma nova instância de transação
 
-        transaction.setTipo(transactionRecordDto.tipo());
+        transaction.setTipo(transactionRecordDto.tipo()); // Define o tipo da transação
 
         switch(transaction.getTipo()) {
             case DEPOSITO -> {
-                // Simular autorização externa
+                // Para o tipo DEPOSITO, valida os dados do cartão e faz a transação
                 CardModel card = cardRepository.findCardByAttributes(
                         transactionRecordDto.numero_cartao(),
                         transactionRecordDto.cvv_cartao(),
                         transactionRecordDto.validade_cartao(),
                         transactionRecordDto.user_origem_id());
 
-                boolean autorizacao = cardValidationService.verifyCard(card);
+                boolean autorizacao = cardValidationService.verifyCard(card); // Valida o cartão com o serviço externo
 
                 if(autorizacao) {
                     UserModel user = userRepository.findById(transactionRecordDto.user_origem_id()).get();
-                    user.setSaldo(user.getSaldo().add(transactionRecordDto.valor()));
-                    transaction.setCreatedAt(LocalDateTime.now());
-                    transaction.setUserOrigem(user);
-                    transaction.setValor(transactionRecordDto.valor());
+                    user.setSaldo(user.getSaldo().add(transactionRecordDto.valor())); // Atualiza o saldo do usuário
+                    transaction.setCreatedAt(LocalDateTime.now()); // Define o horário da transação
+                    transaction.setUserOrigem(user); // Define o usuário de origem da transação
+                    transaction.setValor(transactionRecordDto.valor()); // Define o valor da transação
 
+                    // Salva e retorna a transação
                     return transactionRepository.save(transaction);
                 } else {
                     System.out.println("Transação negada.");
@@ -72,41 +75,37 @@ public class TransactionService {
                 }
             }
             case PAGAMENTO_CARTAO -> {
-                // Simular autorização externa
+                // Para o tipo PAGAMENTO_CARTAO, valida o cartão e faz a transação para pagamento de uma cobrança
                 CardModel card = cardRepository.findCardByAttributes(
                         transactionRecordDto.numero_cartao(),
                         transactionRecordDto.cvv_cartao(),
                         transactionRecordDto.validade_cartao(),
                         transactionRecordDto.user_origem_id());
 
-                boolean autorizacao = cardValidationService.verifyCard(card);
+                boolean autorizacao = cardValidationService.verifyCard(card); // Valida o cartão
 
                 if (autorizacao) {
-                    // Busca a cobrança associada
+                    // Busca a cobrança associada à transação
                     CobrancaModel cobranca = cobrancaRepository.findById(transactionRecordDto.cobranca_id())
                             .orElseThrow(() -> new RuntimeException("Cobrança não encontrada"));
 
-                    // Busca o usuário de destino
+                    // Busca o usuário de destino e atualiza seu saldo
                     UserModel userDestino = userRepository.findById(cobranca.getUserOrigem().getId())
                             .orElseThrow(() -> new RuntimeException("Usuário de destino não encontrado"));
+                    userDestino.setSaldo(userDestino.getSaldo().add(cobranca.getValor())); // Atualiza o saldo do destino
 
-                    // Atualiza o saldo do usuário de destino (adiciona o valor da cobrança)
-                    userDestino.setSaldo(userDestino.getSaldo().add(cobranca.getValor()));
-
-                    // Atualiza o status da cobrança
+                    // Atualiza o status da cobrança e os detalhes da transação
                     cobranca.setStatus(StatusCobranca.REALIZADO);
-
-                    // Configura os detalhes da transação
                     transaction.setValor(cobranca.getValor());
                     transaction.setCreatedAt(LocalDateTime.now());
                     transaction.setUserDestino(userDestino);
 
-                    // O usuário de origem é apenas referenciado pela cobrança, mas não afeta o saldo
+                    // O usuário de origem da cobrança é referenciado, mas não afeta o saldo
                     UserModel userOrigem = userRepository.findById(cobranca.getUserOrigem().getId())
                             .orElseThrow(() -> new RuntimeException("Usuário de origem não encontrado"));
                     transaction.setUserOrigem(userOrigem);
 
-                    // Salva a transação no repositório
+                    // Salva e retorna a transação
                     return transactionRepository.save(transaction);
                 } else {
                     System.out.println("Transação negada.");
@@ -114,18 +113,17 @@ public class TransactionService {
                 }
             }
             case PAGAMENTO_SALDO -> {
+                // Para o tipo PAGAMENTO_SALDO, realiza o pagamento utilizando o saldo do usuário de origem
                 CobrancaModel cobranca = cobrancaRepository.findById(transactionRecordDto.cobranca_id()).get();
 
                 UserModel userOrigem = userRepository.findById(cobranca.getUserOrigem().getId()).get();
 
-                // Verifica se o saldo do usuário de origem é suficiente
+                // Verifica se o saldo do usuário de origem é suficiente para a transação
                 if (userOrigem.getSaldo().compareTo(cobranca.getValor()) >= 0) {
                     UserModel userDestino = userRepository.findById(cobranca.getUserDestino().getId()).get();
 
-                    // Atualiza o saldo do usuário de origem (subtrai o valor da cobrança)
+                    // Atualiza os saldos de origem e destino
                     userOrigem.setSaldo(userOrigem.getSaldo().subtract(cobranca.getValor()));
-
-                    // Atualiza o saldo do usuário de destino (adiciona o valor da cobrança)
                     userDestino.setSaldo(userDestino.getSaldo().add(cobranca.getValor()));
 
                     // Atualiza o status da cobrança
@@ -137,7 +135,7 @@ public class TransactionService {
                     transaction.setUserOrigem(userOrigem);
                     transaction.setUserDestino(userDestino);
 
-                    // Salva a transação no repositório
+                    // Salva e retorna a transação
                     return transactionRepository.save(transaction);
                 } else {
                     System.out.println("Saldo insuficiente para realizar a transação.");
@@ -145,6 +143,6 @@ public class TransactionService {
                 }
             }
         }
-        return null;
+        return null; // Retorna null se nenhum tipo de transação for correspondido
     }
 }

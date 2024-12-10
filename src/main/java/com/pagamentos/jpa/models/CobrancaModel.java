@@ -1,45 +1,51 @@
 package com.pagamentos.jpa.models;
 
 import jakarta.persistence.*;
-
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
 @Table(name = "TB_COBRANCA")
-public class CobrancaModel  implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class CobrancaModel implements Serializable {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    private static final long serialVersionUID = 1L; // Versão para controle de serialização
+
+    @Id // Marca o campo como chave primária
+    @GeneratedValue(strategy = GenerationType.AUTO) // Gera um UUID automaticamente
     private UUID id;
 
-    @Column(nullable = false, unique = false)
-    private BigDecimal valor;
+    @Column(nullable = false, unique = false) // Define uma coluna que não pode ser nula
+    private BigDecimal valor; // O valor da cobrança
 
-    @Column(nullable = false, unique = false, length = 11)
-    private String CPF_origem;
+    @Column(nullable = false, unique = false, length = 11) // Define uma coluna para o CPF de origem e não pode ser nula
+    private String CPF_origem; // CPF do usuário de origem
 
-    @Column(nullable = false, unique = false, length = 11)
-    private String CPF_destino;
+    @Column(nullable = false, unique = false, length = 11) // Define uma coluna para o CPF de destino e não pode ser nula
+    private String CPF_destino; // CPF do usuário de destino
 
-    @Column(nullable = true, unique = false)
-    private String descricao;
+    @Column(nullable = true, unique = false) // Define uma coluna para a descrição, que pode ser nula
+    private String descricao; // Descrição opcional da cobrança
 
-    @Column(nullable = false, unique = false)
-    private StatusCobranca status;
+    @Column(nullable = false, unique = false) // Define uma coluna para o status da cobrança e não pode ser nula
+    private StatusCobranca status; // Status da cobrança (por exemplo, PENDENTE, PAGO, etc.)
 
-    @ManyToOne
-    @JoinColumn(name = "user_origem_id")
+    @ManyToOne // Relacionamento Many-to-One com a entidade UserModel (origem)
+    @JoinColumn(name = "user_origem_id") // Define a chave estrangeira para a tabela de usuários (origem)
     private UserModel userOrigem;
 
-    @ManyToOne
-    @JoinColumn(name = "user_destino_id")
+    @ManyToOne // Relacionamento Many-to-One com a entidade UserModel (destino)
+    @JoinColumn(name = "user_destino_id") // Define a chave estrangeira para a tabela de usuários (destino)
     private UserModel userDestino;
 
     @OneToOne(mappedBy = "cobranca", cascade = CascadeType.ALL, orphanRemoval = true)
+    // Relacionamento One-to-One com a entidade TransactionModel (cada cobrança tem uma transação associada)
+    // mappedBy indica que a propriedade 'cobranca' na classe TransactionModel é responsável pela associação
+    // cascade = CascadeType.ALL faz com que as operações em Cobranca sejam propagadas para a TransactionModel
+    // orphanRemoval = true significa que se a cobrança for removida, a transação associada também será removida
     private TransactionModel transacao;
+
+    // Getters e Setters
 
     public UUID getId() {
         return id;
