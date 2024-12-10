@@ -24,7 +24,11 @@ public class TransactionController {
 
     @PostMapping
     public ResponseEntity<TransactionModel> saveTransaction(@RequestBody TransactionRecordDto transactionRecordDto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(transactionService.saveTransaction(transactionRecordDto));
+        TransactionModel transaction = transactionService.saveTransaction(transactionRecordDto);
+        if (transaction == null)
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(transaction);
     }
 
     @GetMapping

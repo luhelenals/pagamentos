@@ -18,40 +18,68 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final CobrancaRepository cobrancaRepository;
     private final CardRepository cardRepository;
+    private final CardValidationService cardValidationService;
 
     public TransactionService(UserRepository userRepository,
                               CobrancaRepository cobrancaRepository,
                               TransactionRepository transactionRepository,
-                              CardRepository cardRepository) {
+                              CardRepository cardRepository,
+                              CardValidationService cardValidationService) {
         this.userRepository = userRepository;
         this.cobrancaRepository = cobrancaRepository;
         this.transactionRepository = transactionRepository;
         this.cardRepository = cardRepository;
+        this.cardValidationService = cardValidationService;
     }
 
     @Transactional
     public TransactionModel saveTransaction(TransactionRecordDto transactionRecordDto) {
+        if (transactionRecordDto.valor() == null
+            || transactionRecordDto.tipo() == null
+            || (transactionRecordDto.cobranca_id() == null
+                && (transactionRecordDto.tipo() == TransactionType.PAGAMENTO_CARTAO
+                || transactionRecordDto.tipo() == TransactionType.PAGAMENTO_SALDO))
+            || ((transactionRecordDto.cvv_cartao() == null || transactionRecordDto.numero_cartao() == null || transactionRecordDto.validade_cartao() == null)
+                && transactionRecordDto.tipo() == TransactionType.DEPOSITO || transactionRecordDto.tipo() == TransactionType.PAGAMENTO_CARTAO))
+            return null;
+
         TransactionModel transaction = new TransactionModel();
 
         transaction.setTipo(transactionRecordDto.tipo());
 
         switch(transaction.getTipo()) {
             case DEPOSITO -> {
-                UserModel user = userRepository.findById(transactionRecordDto.user_origem_id()).get();
-                user.setSaldo(user.getSaldo().add(transactionRecordDto.valor()));
-                transaction.setCreatedAt(LocalDateTime.now());
-                transaction.setUserOrigem(user);
-                transaction.setValor(transactionRecordDto.valor());
+                // Simular autorização externa
+                CardModel card = cardRepository.findCardByAttributes(
+                        transactionRecordDto.numero_cartao(),
+                        transactionRecordDto.cvv_cartao(),
+                        transactionRecordDto.validade_cartao(),
+                        transactionRecordDto.user_origem_id());
 
-                return transactionRepository.save(transaction);
+                boolean autorizacao = cardValidationService.verifyCard(card);
+
+                if(autorizacao) {
+                    UserModel user = userRepository.findById(transactionRecordDto.user_origem_id()).get();
+                    user.setSaldo(user.getSaldo().add(transactionRecordDto.valor()));
+                    transaction.setCreatedAt(LocalDateTime.now());
+                    transaction.setUserOrigem(user);
+                    transaction.setValor(transactionRecordDto.valor());
+
+                    return transactionRepository.save(transaction);
+                } else {
+                    System.out.println("Transação negada.");
+                    throw new RuntimeException("Transação negada pela autorização externa.");
+                }
             }
             case PAGAMENTO_CARTAO -> {
-                // Simular autorização externa (implementação futura)
-                CardModel card = cardRepository.findById(transactionRecordDto.card_id())
-                        .orElseThrow(() -> new RuntimeException("Cartão não encontrado"));
+                // Simular autorização externa
+                CardModel card = cardRepository.findCardByAttributes(
+                        transactionRecordDto.numero_cartao(),
+                        transactionRecordDto.cvv_cartao(),
+                        transactionRecordDto.validade_cartao(),
+                        transactionRecordDto.user_origem_id());
 
-                // Aqui a autorização será implementada futuramente; por enquanto, sempre será permitida
-                boolean autorizacao = true;
+                boolean autorizacao = cardValidationService.verifyCard(card);
 
                 if (autorizacao) {
                     // Busca a cobrança associada
@@ -117,6 +145,6 @@ public class TransactionService {
                 }
             }
         }
-        return transaction;
+        return null;
     }
 }

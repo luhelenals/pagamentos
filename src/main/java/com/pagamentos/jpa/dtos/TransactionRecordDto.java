@@ -6,7 +6,9 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 public record TransactionRecordDto(TransactionType tipo,
-                                   UUID card_id,
+                                   String numero_cartao,
+                                   String validade_cartao,
+                                   String cvv_cartao,
                                    UUID cobranca_id,
                                    BigDecimal valor,
                                    UUID user_origem_id) {
